@@ -92,16 +92,6 @@ export interface OctokitLabelResponse {
 
 export class LabelService {
 
-    private collatePresetLabelIdentifiers(): Map<string, Label> {
-        const presetIdentifierMap: Map<string, Label> = new Map();
-        LABELS_COLLECTIONS.forEach((labelCollection: LabelCollection) => {
-            labelCollection.labels.forEach((label: Label) => {
-                presetIdentifierMap.set(label.labelIdentifier, label);
-            });
-        });
-        return presetIdentifierMap;
-    }
-
     private collatePresetSubstrings(): Map<string[], Label> {
         const presetSubstrMap: Map<string[], Label> = new Map();
         LABELS_COLLECTIONS.forEach((labelCollection: LabelCollection) => {
