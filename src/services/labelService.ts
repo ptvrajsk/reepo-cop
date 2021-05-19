@@ -60,8 +60,6 @@ class LabelCollection {
     public get labels(): Label[] {
         return this._labels;
     }
-
-
 }
 
 const LABELS_COLLECTIONS: LabelCollection[] = [
@@ -85,8 +83,6 @@ const LABELS_COLLECTIONS: LabelCollection[] = [
         ]
     )
 ]
-
-
 
 export interface OctokitLabelResponse {
     name: string;
@@ -152,7 +148,6 @@ export class LabelService {
                         octokitLabelsFetchResponse.splice(+labelResponseIndex, 1);
                         remainingLabels = remainingLabels.filter((labelFromAll: Label) => labelFromAll.labelName !== label.labelName);
                         break;
-
                     }
                 }
                 if (isMatched) {
