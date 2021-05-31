@@ -1,21 +1,25 @@
 import { Probot } from 'probot';
 import LabelService from './services/labelService';
 import PRService from './services/prService';
+import IssueService from './services/issueService';
 import { PRAction } from './model/model_pr';
 import GHLabel from './model/model_ghLabel';
 import ContextService, { HookContext } from './services/contextService';
+import GHUser from './model/model_ghUser';
 
 const labelService: LabelService = new LabelService();
 
 export = (app: Probot) => {
-
-  app.on(['pull_request.opened', 'pull_request.reopened', 'pull_request.ready_for_review'], async (context: HookContext) => {
-    PRService.replaceExistingPRLabels(
-      ContextService.getPRLabelReplacer(context),
-      context?.payload?.pull_request?.labels,
-      PRAction.READY_FOR_REVIEW
-    );
-  });
+  app.on(
+    ['pull_request.opened', 'pull_request.reopened', 'pull_request.ready_for_review'],
+    async (context: HookContext) => {
+      PRService.replaceExistingPRLabels(
+        ContextService.getPRLabelReplacer(context),
+        context?.payload?.pull_request?.labels,
+        PRAction.READY_FOR_REVIEW
+      );
+    }
+  );
 
   /**
    * Unfortunately there isn't a pre-defined hook for
@@ -49,12 +53,17 @@ export = (app: Probot) => {
     );
   });
 
-  app.on('issues.opened', async (context: HookContext) => {
-    const issueComment = context.issue({
-      body: 'Thanks for opening this issue!',
-    });
-
-    await context.octokit.issues.createComment(issueComment);
+  app.on(['issues.opened', 'issues.edited'], async (context: HookContext) => {
+    // Creates comment if this issue is the user's first
+    const userIssueCount: number = await IssueService.getNumberOfIssuesCreatedByUser(
+      context.payload.issue?.user as GHUser,
+      ContextService.getAuthorsIssuesRetriever(context)
+    );
+    if (IssueService.isUsersMilestoneIssue(userIssueCount)) {
+      ContextService.getIssueCommentCreator(context)(
+        IssueService.getUserMilestoneIssueCongratulation(userIssueCount)
+      );
+    }
   });
   // For more information on building apps:
   // https://probot.github.io/docs/

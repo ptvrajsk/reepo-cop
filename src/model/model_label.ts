@@ -7,12 +7,12 @@ import { createHash } from 'crypto';
  * be assigned once to a Label.
  */
 export enum LabelAction {
-  ToReview = 'To Review',
-  ToMerge = 'To Merge',
-  OnGoing = 'On Going',
+  ToReview = 'ToReview',
+  ToMerge = 'ToMerge',
+  OnGoing = 'OnGoing',
   Paused = 'OnHold',
   Bug = 'Bug',
-  WontFix = 'Wont Fix',
+  WontFix = 'WontFix',
   Feature = 'Feature',
   Documentation = 'Documentation',
   Enhancement = 'Enhancement',
@@ -35,7 +35,7 @@ export default class Label {
     this._action = action;
   }
 
-  public static GenerateIdentifier(name: string, desc: string, color: string) {
+  private static GenerateIdentifier(name: string, desc: string, color: string) {
     const hash = createHash('sha256');
     hash.update(name);
     hash.update(desc);

@@ -1,5 +1,6 @@
+import GHLabel from './model_ghLabel';
 import Label, { LabelAction } from './model_label';
-import LabelCollection, { LabelCollectionType } from './model_labelCollection'
+import LabelCollection, { LabelCollectionType } from './model_labelCollection';
 
 export default class LabelArchive {
   private _labelCollections: LabelCollection[];
@@ -41,5 +42,15 @@ export default class LabelArchive {
     }
 
     return foundLabel;
+  }
+
+  private findGHLabel(ghLabel: GHLabel): Label | undefined {
+    return this.collatePresetLabels().find(
+      (label: Label) => label.name === ghLabel.name && label.color === ghLabel.color && label.desc === ghLabel.color
+    );
+  }
+
+  public mapGHLabels(ghLabels: GHLabel[]): Label[] {
+    return ghLabels.map((ghLabel: GHLabel) => this.findGHLabel(ghLabel)).filter( Boolean ) as Label[];
   }
 }
