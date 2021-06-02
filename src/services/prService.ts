@@ -6,6 +6,13 @@ import { LABEL_ARCHIVE } from '../constants/const_labels';
 import { PRAction } from '../model/model_pr';
 
 export default class PRService {
+
+  /**
+   * Replaces existing PR Labels with new labels based on the PR Action.
+   * @param labelReplacer - A function that removes a set of labels and adds another to a PR.
+   * @param existingLabels - Existing set of Labels on said PR.
+   * @param prAction - Type of action taking place on said PR.
+   */
   public static replaceExistingPRLabels(
     labelReplacer: (removalLabelName: string[], replacementLabelNames: string[]) => void,
     existingLabels: GHLabel[],

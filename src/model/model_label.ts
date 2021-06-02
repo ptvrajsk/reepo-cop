@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import GHLabel from './model_ghLabel';
 
 /**
  * Enum exists as an accessible Identification
@@ -14,7 +15,7 @@ export enum LabelAction {
   Bug = 'Bug',
   WontFix = 'WontFix',
   Feature = 'Feature',
-  Documentation = 'Documentation',
+  Documentation = 'Doc',
   Enhancement = 'Enhancement',
 }
 
@@ -22,7 +23,7 @@ export default class Label {
   private _name: string;
   private _desc: string;
   private _color: string;
-  private _identifier: string;
+  private _hash: string;
   private _aliases: string[];
   private _action: LabelAction;
 
@@ -30,12 +31,12 @@ export default class Label {
     this._name = name;
     this._desc = desc;
     this._color = color;
-    this._identifier = Label.GenerateIdentifier(name, desc, color);
+    this._hash = Label.GenerateHash(name, desc, color);
     this._aliases = (typeof substr === 'string' || substr instanceof String ? [substr] : substr) as string[];
     this._action = action;
   }
 
-  private static GenerateIdentifier(name: string, desc: string, color: string) {
+  private static GenerateHash(name: string, desc: string, color: string) {
     const hash = createHash('sha256');
     hash.update(name);
     hash.update(desc);
@@ -55,8 +56,8 @@ export default class Label {
     return this._color;
   }
 
-  public get identifier(): string {
-    return this._identifier;
+  public get hash(): string {
+    return this._hash;
   }
 
   public get labelAlias(): string[] {
@@ -65,5 +66,13 @@ export default class Label {
 
   public get action(): LabelAction {
     return this._action;
+  }
+
+  public isEquivalentToGHLabel(ghLabel: GHLabel): boolean {
+    return (
+      this._name === ghLabel.name &&
+      this._desc === ghLabel.description &&
+      this._color === ghLabel.color
+    );
   }
 }

@@ -17,7 +17,9 @@ export default class LabelService {
     labelUpdater: (oldName: string, newName: string, desc: string, color: string) => Promise<any>
   ): Label[] {
     let remainingLabels: Label[] = LABEL_ARCHIVE.collatePresetLabels();
-    const presetSubstrIdentifiers: Map<string[], Label> = LABEL_ARCHIVE.collatePresetSubstrings();
+
+    const presetSubstrIdentifiers: Map<string[], Label> = LABEL_ARCHIVE.collatePresetSubstringMap();
+
     presetSubstrIdentifiers.forEach((label: Label, substrings: string[]) => {
       for (const substr of substrings) {
         let isMatched = false;
@@ -26,7 +28,7 @@ export default class LabelService {
           if (octokitLabelsFetchResponse[labelResponseIndex].name.toLowerCase().includes(substr)) {
             isMatched = true;
 
-            if (this.doesLabelNeedUpdating(label, octokitLabelsFetchResponse[labelResponseIndex])) {
+            if (!label.isEquivalentToGHLabel(octokitLabelsFetchResponse[labelResponseIndex])) {
               labelUpdater(octokitLabelsFetchResponse[labelResponseIndex].name, label.name, label.desc, label.color);
             }
 
@@ -42,14 +44,6 @@ export default class LabelService {
     });
 
     return remainingLabels;
-  }
-
-  private doesLabelNeedUpdating(comparisonLabel: Label, labelResponse: GHLabel): boolean {
-    return !(
-      comparisonLabel.name === labelResponse.name &&
-      comparisonLabel.desc === labelResponse.description &&
-      comparisonLabel.color === labelResponse.color
-    );
   }
 
   /**
@@ -69,6 +63,11 @@ export default class LabelService {
     );
   }
 
+  /**
+   * Returns an array of label names matching the requirement of the PR.
+   * @param prAction - PRAction Enum describing the type of labels necessary.
+   * @returns a string array of label names matching input requirements.
+   */
   public getPRLabelNames(prAction: PRAction): string[] {
     const labelNames: string[] = [];
 
@@ -92,6 +91,13 @@ export default class LabelService {
     return labelNames;
   }
 
+  /**
+   * Checks an array of GHLabel for labels that belong to the input
+   * LabelCollectionType Enum and returns a string of said label names.
+   * @param labelCollectionType - LabelCollectionType Enum describing the type of labels to be extracted.
+   * @param ghLabels - Array of GHLabels of which existing labels are to be extracted.
+   * @returns a string array containing extracted label names.
+   */
   public static extractLabelNames(labelCollectionType: LabelCollectionType, ghLabels: GHLabel[]) {
     const labelNames: string[] = [];
     for (const label of ghLabels) {

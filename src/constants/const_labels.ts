@@ -5,35 +5,35 @@ import LabelCollection, { LabelCollectionType } from '../model/model_labelCollec
 export const LABEL_ARCHIVE: LabelArchive = new LabelArchive([
   new LabelCollection(LabelCollectionType.IssueCollection, [
     new Label(
-      `🐞 ${LabelCollectionType.IssueCollection}.Bug`,
+      `🐞 ${LabelCollectionType.IssueCollection}.${LabelAction.Bug}`,
       'This issue describes a bug.',
       'D73A4A',
       'bug',
       LabelAction.Bug
     ),
     new Label(
-      `⚙️ ${LabelCollectionType.IssueCollection}.Feature`,
+      `⚙️ ${LabelCollectionType.IssueCollection}.${LabelAction.Feature}`,
       'This issue describes a new feature.',
       '120BB0',
       'feature',
       LabelAction.Feature
     ),
     new Label(
-      `📈 ${LabelCollectionType.IssueCollection}.Enhancement`,
+      `📈 ${LabelCollectionType.IssueCollection}.${LabelAction.Enhancement}`,
       'This issue describes an enhancement to an existing feature.',
       '19504B',
       'enhance',
       LabelAction.Enhancement
     ),
     new Label(
-      `📚 ${LabelCollectionType.IssueCollection}.Documentation`,
+      `📚 ${LabelCollectionType.IssueCollection}.${LabelAction.Documentation}`,
       'This issue describes a change to the existing documentation.',
       '0075CA',
       'doc',
       LabelAction.Documentation
     ),
     new Label(
-      `❌ ${LabelCollectionType.IssueCollection}.WontFix`,
+      `❌ ${LabelCollectionType.IssueCollection}.${LabelAction.WontFix}`,
       'This issue describes a suggestion that will not be fixed.',
       'FFFFFF',
       'wontfix',
@@ -42,28 +42,28 @@ export const LABEL_ARCHIVE: LabelArchive = new LabelArchive([
   ]),
   new LabelCollection(LabelCollectionType.PRCollection, [
     new Label(
-      `🏃 ${LabelCollectionType.PRCollection}.Ongoing`,
+      `🏃 ${LabelCollectionType.PRCollection}.${LabelAction.OnGoing}`,
       'This PR is still in progress.',
       '2FEFDD',
       ['progress', 'ongoing'],
       LabelAction.OnGoing
     ),
     new Label(
-      `👍 ${LabelCollectionType.PRCollection}.ToMerge`,
+      `👍 ${LabelCollectionType.PRCollection}.${LabelAction.ToMerge}`,
       'This PR is ready for merger.',
       '0E8A16',
       'merge',
       LabelAction.ToMerge
     ),
     new Label(
-      `🔬 ${LabelCollectionType.PRCollection}.ToReview`,
+      `🔬 ${LabelCollectionType.PRCollection}.${LabelAction.ToReview}`,
       'This PR is ready for review.',
       'BA50EB',
       'review',
       LabelAction.ToReview
     ),
     new Label(
-      `🛑 ${LabelCollectionType.PRCollection}.OnHold`,
+      `🛑 ${LabelCollectionType.PRCollection}.${LabelAction.Paused}`,
       "This PR's progress is halted.",
       'C5DEF5',
       'hold',

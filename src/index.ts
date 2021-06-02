@@ -6,6 +6,7 @@ import { PRAction } from './model/model_pr';
 import GHLabel from './model/model_ghLabel';
 import ContextService, { HookContext } from './services/contextService';
 import GHUser from './model/model_ghUser';
+import GHIssue from './model/model_ghIssue';
 
 const labelService: LabelService = new LabelService();
 
@@ -15,7 +16,7 @@ export = (app: Probot) => {
     async (context: HookContext) => {
       PRService.replaceExistingPRLabels(
         ContextService.getPRLabelReplacer(context),
-        context?.payload?.pull_request?.labels,
+        context.payload.pull_request?.labels,
         PRAction.READY_FOR_REVIEW
       );
     }
@@ -32,7 +33,7 @@ export = (app: Probot) => {
       case 'converted_to_draft':
         PRService.replaceExistingPRLabels(
           ContextService.getPRLabelReplacer(context),
-          context?.payload?.pull_request?.labels,
+          context.payload.pull_request?.labels,
           PRAction.CONVERTED_TO_DRAFT
         );
         break;
@@ -53,17 +54,22 @@ export = (app: Probot) => {
     );
   });
 
-  app.on(['issues.opened', 'issues.edited'], async (context: HookContext) => {
-    // Creates comment if this issue is the user's first
+  app.on('issues.opened', async (context: HookContext) => {
+    // Creates comment if this issue is the user's nth (a 'milestone' congratulation)
     const userIssueCount: number = await IssueService.getNumberOfIssuesCreatedByUser(
       context.payload.issue?.user as GHUser,
       ContextService.getAuthorsIssuesRetriever(context)
     );
     if (IssueService.isUsersMilestoneIssue(userIssueCount)) {
-      ContextService.getIssueCommentCreator(context)(
-        IssueService.getUserMilestoneIssueCongratulation(userIssueCount)
-      );
+      ContextService.getIssueCommentCreator(context)(IssueService.getUserMilestoneIssueCongratulation(userIssueCount));
     }
+  });
+
+  app.on(['issues.opened', 'issues.edited'], async (context: HookContext) => {
+    IssueService.handleAutomatedLabelling(
+      context.payload.issue as GHIssue,
+      ContextService.getIssueLabelReplacer(context)
+    );
   });
   // For more information on building apps:
   // https://probot.github.io/docs/

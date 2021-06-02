@@ -9,7 +9,7 @@ export default class LabelArchive {
     this._labelCollections = labelCollections;
   }
 
-  public collatePresetSubstrings(): Map<string[], Label> {
+  public collatePresetSubstringMap(): Map<string[], Label> {
     const presetSubstrMap: Map<string[], Label> = new Map();
     this._labelCollections.forEach((labelCollection: LabelCollection) => {
       labelCollection.allLabels.forEach((label: Label) => {
@@ -51,6 +51,6 @@ export default class LabelArchive {
   }
 
   public mapGHLabels(ghLabels: GHLabel[]): Label[] {
-    return ghLabels.map((ghLabel: GHLabel) => this.findGHLabel(ghLabel)).filter( Boolean ) as Label[];
+    return ghLabels.map((ghLabel: GHLabel) => this.findGHLabel(ghLabel)).filter(Boolean) as Label[];
   }
 }
