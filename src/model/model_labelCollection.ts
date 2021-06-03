@@ -1,8 +1,10 @@
-import Label, { LabelAction } from './model_label';
+import Label from './model_label';
+import LabelType from './model_label_type';
 
 export enum LabelCollectionType {
   IssueCollection = 'issue',
   PRCollection = 'pr',
+  PriorityCollection = 'priority'
 }
 
 export default class LabelCollection {
@@ -15,16 +17,18 @@ export default class LabelCollection {
   }
 
   private getValidatedLabels(labels: Label[]): Label[] {
-    const labelActionSet: Set<string> = new Set<string>();
+    const labelTypeSet: Set<string> = new Set<string>();
     const verifiedLabels: Label[] = [];
+    
     for (const label of labels) {
-      if (labelActionSet.has(label.action)) {
-        console.error(`${label.action} has been defined before.`);
+      if (labelTypeSet.has(label.type)) {
+        console.error(`${label.type} has been defined before.`);
       } else {
-        labelActionSet.add(label.action);
+        labelTypeSet.add(label.type);
         verifiedLabels.push(label);
       }
     }
+    
     return verifiedLabels;
   }
 
@@ -32,8 +36,8 @@ export default class LabelCollection {
     return this._collectionType;
   }
 
-  public getLabel(labelAction: LabelAction): Label | undefined {
-    return this._labels.find((label: Label) => label.action === labelAction);
+  public getLabel(labelType: LabelType): Label | undefined {
+    return this._labels.find((label: Label) => label.type === labelType);
   }
 
   public get allLabels(): Label[] {

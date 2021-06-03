@@ -1,23 +1,6 @@
 import { createHash } from 'crypto';
-import GHLabel from './model_ghLabel';
-
-/**
- * Enum exists as an accessible Identification
- * for each created label.
- * NOTE: Each LabelAction is unique and can only
- * be assigned once to a Label.
- */
-export enum LabelAction {
-  ToReview = 'ToReview',
-  ToMerge = 'ToMerge',
-  OnGoing = 'OnGoing',
-  Paused = 'OnHold',
-  Bug = 'Bug',
-  WontFix = 'WontFix',
-  Feature = 'Feature',
-  Documentation = 'Doc',
-  Enhancement = 'Enhancement',
-}
+import GHLabel, { isGHLabel } from './model_ghLabel';
+import LabelType from './model_label_type';
 
 export default class Label {
   private _name: string;
@@ -25,9 +8,9 @@ export default class Label {
   private _color: string;
   private _hash: string;
   private _aliases: string[];
-  private _action: LabelAction;
+  private _action: LabelType;
 
-  constructor(name: string, desc: string, color: string, substr: string | string[], action: LabelAction) {
+  constructor(name: string, desc: string, color: string, substr: string | string[], action: LabelType) {
     this._name = name;
     this._desc = desc;
     this._color = color;
@@ -42,6 +25,10 @@ export default class Label {
     hash.update(desc);
     hash.update(color);
     return hash.digest('hex');
+  }
+
+  public static isLabel(object: any): object is Label {
+    return object instanceof Label;
   }
 
   public get name(): string {
@@ -64,15 +51,27 @@ export default class Label {
     return this._aliases;
   }
 
-  public get action(): LabelAction {
+  public get type(): LabelType {
     return this._action;
   }
 
-  public isEquivalentToGHLabel(ghLabel: GHLabel): boolean {
-    return (
-      this._name === ghLabel.name &&
-      this._desc === ghLabel.description &&
-      this._color === ghLabel.color
-    );
+  public equal(label: Label): boolean;
+  public equal(ghLabel: GHLabel): boolean;
+  public equal(labelObject: Label | GHLabel): boolean {
+    if (Label.isLabel(labelObject)) {
+      return (
+        this._name === labelObject.name &&
+        this._desc === labelObject.desc &&
+        this._color === labelObject.color
+      );
+    } else if (isGHLabel(labelObject)) {
+      return (
+        this._name === labelObject.name &&
+        this._desc === labelObject.description &&
+        this._color === labelObject.color
+      );
+    } else {
+      throw new Error('Comparison object type unrecognized.');
+    }
   }
 }

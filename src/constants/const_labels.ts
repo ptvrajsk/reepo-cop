@@ -1,73 +1,104 @@
 import LabelArchive from '../model/model_labelArchive';
-import Label, { LabelAction } from '../model/model_label';
+import Label from '../model/model_label';
+import { PRType, PriorityType, IssueType } from '../model/model_label_type';
 import LabelCollection, { LabelCollectionType } from '../model/model_labelCollection';
 
 export const LABEL_ARCHIVE: LabelArchive = new LabelArchive([
   new LabelCollection(LabelCollectionType.IssueCollection, [
     new Label(
-      `🐞 ${LabelCollectionType.IssueCollection}.${LabelAction.Bug}`,
+      `🐞 ${LabelCollectionType.IssueCollection}.${IssueType.Bug}`,
       'This issue describes a bug.',
-      'D73A4A',
+      'AA5117',
       'bug',
-      LabelAction.Bug
+      IssueType.Bug
     ),
     new Label(
-      `⚙️ ${LabelCollectionType.IssueCollection}.${LabelAction.Feature}`,
+      `⚙️ ${LabelCollectionType.IssueCollection}.${IssueType.Feature}`,
       'This issue describes a new feature.',
       '120BB0',
       'feature',
-      LabelAction.Feature
+      IssueType.Feature
     ),
     new Label(
-      `📈 ${LabelCollectionType.IssueCollection}.${LabelAction.Enhancement}`,
+      `📈 ${LabelCollectionType.IssueCollection}.${IssueType.Enhancement}`,
       'This issue describes an enhancement to an existing feature.',
       '19504B',
       'enhance',
-      LabelAction.Enhancement
+      IssueType.Enhancement
     ),
     new Label(
-      `📚 ${LabelCollectionType.IssueCollection}.${LabelAction.Documentation}`,
+      `📚 ${LabelCollectionType.IssueCollection}.${IssueType.Documentation}`,
       'This issue describes a change to the existing documentation.',
       '0075CA',
       'doc',
-      LabelAction.Documentation
+      IssueType.Documentation
     ),
     new Label(
-      `❌ ${LabelCollectionType.IssueCollection}.${LabelAction.WontFix}`,
+      `❌ ${LabelCollectionType.IssueCollection}.${IssueType.WontFix}`,
       'This issue describes a suggestion that will not be fixed.',
       'FFFFFF',
       'wontfix',
-      LabelAction.WontFix
-    ),
+      IssueType.WontFix
+    )
   ]),
   new LabelCollection(LabelCollectionType.PRCollection, [
     new Label(
-      `🏃 ${LabelCollectionType.PRCollection}.${LabelAction.OnGoing}`,
+      `🏃 ${LabelCollectionType.PRCollection}.${PRType.OnGoing}`,
       'This PR is still in progress.',
       '2FEFDD',
       ['progress', 'ongoing'],
-      LabelAction.OnGoing
+      PRType.OnGoing
     ),
     new Label(
-      `👍 ${LabelCollectionType.PRCollection}.${LabelAction.ToMerge}`,
+      `👍 ${LabelCollectionType.PRCollection}.${PRType.ToMerge}`,
       'This PR is ready for merger.',
       '0E8A16',
       'merge',
-      LabelAction.ToMerge
+      PRType.ToMerge
     ),
     new Label(
-      `🔬 ${LabelCollectionType.PRCollection}.${LabelAction.ToReview}`,
+      `🔬 ${LabelCollectionType.PRCollection}.${PRType.ToReview}`,
       'This PR is ready for review.',
       'BA50EB',
       'review',
-      LabelAction.ToReview
+      PRType.ToReview
     ),
     new Label(
-      `🛑 ${LabelCollectionType.PRCollection}.${LabelAction.Paused}`,
+      `🛑 ${LabelCollectionType.PRCollection}.${PRType.Paused}`,
       "This PR's progress is halted.",
       'C5DEF5',
       'hold',
-      LabelAction.Paused
-    ),
+      PRType.Paused
+    )
   ]),
+  new LabelCollection(LabelCollectionType.PriorityCollection, [
+    new Label(
+      `🔥 ${LabelCollectionType.PriorityCollection}.${PriorityType.Urgent}`,
+      'This must be completed immediately.',
+      '3A0002',
+      PriorityType.Urgent.toLowerCase(),
+      PriorityType.Urgent
+    ),
+    new Label(
+      `🚨 ${LabelCollectionType.PriorityCollection}.${PriorityType.High}`,
+      'This should be worked on ASAP.',
+      '6F0004',
+      PriorityType.High.toLowerCase(),
+      PriorityType.High
+    ),
+    new Label(
+      `⏲️ ${LabelCollectionType.PriorityCollection}.${PriorityType.Medium}`,
+      'This should be tackled when possible.',
+      'AD0007',
+      PriorityType.Medium.toLowerCase(),
+      PriorityType.Medium
+    ),
+    new Label(
+      `📭 ${LabelCollectionType.PriorityCollection}.${PriorityType.Low}`,
+      "This can be completed after existing backlog of higher priority items.",
+      'FE000A',
+      PriorityType.Low.toLowerCase(),
+      PriorityType.Low
+    )
+  ])
 ]);

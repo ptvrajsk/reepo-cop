@@ -1,9 +1,9 @@
 import GHLabel from '../model/model_ghLabel';
-import { LabelAction } from '../model/model_label';
 import LabelService from './labelService';
 import { LabelCollectionType } from '../model/model_labelCollection';
 import { LABEL_ARCHIVE } from '../constants/const_labels';
 import { PRAction } from '../model/model_pr';
+import { PRType } from '../model/model_label_type';
 
 export default class PRService {
 
@@ -26,10 +26,10 @@ export default class PRService {
     switch (prAction) {
       case PRAction.READY_FOR_REVIEW:
       case PRAction.OPENED:
-        labelNamesToAdd.push(LABEL_ARCHIVE.getLabel(LabelCollectionType.PRCollection, LabelAction.ToReview)?.name!);
+        labelNamesToAdd.push(LABEL_ARCHIVE.getLabel(LabelCollectionType.PRCollection, PRType.ToReview)?.name!);
         break;
       case PRAction.CONVERTED_TO_DRAFT:
-        labelNamesToAdd.push(LABEL_ARCHIVE.getLabel(LabelCollectionType.PRCollection, LabelAction.OnGoing)?.name!);
+        labelNamesToAdd.push(LABEL_ARCHIVE.getLabel(LabelCollectionType.PRCollection, PRType.OnGoing)?.name!);
         break;
     }
 

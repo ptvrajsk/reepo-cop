@@ -79,21 +79,35 @@ export default class IssueService {
     ghIssue: GHIssue,
     labelReplacer: (removalLabelName: string[], replacementLabelNames: string[]) => void
   ) {
-    const autoLabel: Label | undefined = LABEL_ARCHIVE.collatePresetLabels().find(
+    const presetLabels: Label[] = LABEL_ARCHIVE.collatePresetLabels();
+
+    const autoIssueLabel: Label | undefined = presetLabels.find(
       (label: Label) =>
-        !label.name.includes(LabelCollectionType.PRCollection) &&
-        ghIssue.title.includes(`${label.action.toUpperCase()}:`)
+        label.name.includes(LabelCollectionType.IssueCollection) && ghIssue.title.toLowerCase().includes(`${label.type.toLowerCase()}:`)
     );
 
-    if (!autoLabel) {
+    const autoPriorityLabel: Label | undefined = presetLabels.find(
+      (label: Label) =>
+        label.name.includes(LabelCollectionType.PriorityCollection) &&
+        ghIssue.title.toLowerCase().includes(`[${label.type.toLowerCase().substr(0, 1)}]`)
+    );
+
+    if (!autoIssueLabel && !autoPriorityLabel) {
       return;
     }
 
-    const labelNamesToRemove: string[] = LabelService.extractLabelNames(
-      LabelCollectionType.IssueCollection,
-      ghIssue.labels
-    );
-    const labelNamesToAdd: string[] = [autoLabel.name];
+    const labelNamesToAdd: string[] = [];
+    if (autoIssueLabel) {
+      labelNamesToAdd.push(autoIssueLabel.name);
+    }
+    if (autoPriorityLabel) {
+      labelNamesToAdd.push(autoPriorityLabel.name);
+    }
+
+    const labelNamesToRemove: string[] = [
+      ...LabelService.extractLabelNames(LabelCollectionType.IssueCollection, ghIssue.labels),
+      ...LabelService.extractLabelNames(LabelCollectionType.PriorityCollection, ghIssue.labels),
+    ];
 
     labelReplacer(labelNamesToRemove, labelNamesToAdd);
   }

@@ -10,3 +10,7 @@ export default interface GHLabel {
   default: boolean,
   description: string
 }
+
+export function isGHLabel(object: any): object is GHLabel {
+  return 'description' in object && 'id' in object;
+}

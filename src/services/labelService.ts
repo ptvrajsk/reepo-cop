@@ -1,8 +1,9 @@
 import GHLabel from '../model/model_ghLabel';
-import Label, { LabelAction } from '../model/model_label';
+import Label from '../model/model_label';
 import { LabelCollectionType } from '../model/model_labelCollection';
 import { PRAction } from '../model/model_pr';
 import { LABEL_ARCHIVE } from '../constants/const_labels';
+import { PRType } from '../model/model_label_type';
 
 export default class LabelService {
   /**
@@ -28,7 +29,7 @@ export default class LabelService {
           if (octokitLabelsFetchResponse[labelResponseIndex].name.toLowerCase().includes(substr)) {
             isMatched = true;
 
-            if (!label.isEquivalentToGHLabel(octokitLabelsFetchResponse[labelResponseIndex])) {
+            if (!label.equal(octokitLabelsFetchResponse[labelResponseIndex])) {
               labelUpdater(octokitLabelsFetchResponse[labelResponseIndex].name, label.name, label.desc, label.color);
             }
 
@@ -74,14 +75,14 @@ export default class LabelService {
     switch (prAction) {
       case PRAction.CONVERTED_TO_DRAFT:
       case PRAction.OPENED:
-        const onGoingLabel = LABEL_ARCHIVE.getLabel(LabelCollectionType.PRCollection, LabelAction.OnGoing);
+        const onGoingLabel = LABEL_ARCHIVE.getLabel(LabelCollectionType.PRCollection, PRType.OnGoing);
         if (onGoingLabel) {
           labelNames.push(onGoingLabel.name);
         }
         break;
 
       case PRAction.READY_FOR_REVIEW:
-        const toReviewLabel = LABEL_ARCHIVE.getLabel(LabelCollectionType.PRCollection, LabelAction.ToReview);
+        const toReviewLabel = LABEL_ARCHIVE.getLabel(LabelCollectionType.PRCollection, PRType.ToReview);
         if (toReviewLabel) {
           labelNames.push(toReviewLabel.name);
         }
