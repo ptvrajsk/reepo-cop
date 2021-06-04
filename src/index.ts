@@ -1,24 +1,15 @@
 import { Probot } from 'probot';
-import LabelService from './services/labelService';
-import PRService from './services/prService';
-import IssueService from './services/issueService';
 import { PRAction } from './model/model_pr';
-import GHLabel from './model/model_ghLabel';
-import ContextService, { HookContext } from './services/contextService';
-import GHUser from './model/model_ghUser';
-import GHIssue from './model/model_ghIssue';
+import { HookContext } from './services/contextService';
+import BotService from './services/botService';
 
-const labelService: LabelService = new LabelService();
+const _botService: BotService = new BotService();
 
 export = (app: Probot) => {
   app.on(
     ['pull_request.opened', 'pull_request.reopened', 'pull_request.ready_for_review'],
     async (context: HookContext) => {
-      PRService.replaceExistingPRLabels(
-        ContextService.getPRLabelReplacer(context),
-        context.payload.pull_request?.labels,
-        PRAction.READY_FOR_REVIEW
-      );
+      await _botService.handlePRLabelReplacement(context, PRAction.READY_FOR_REVIEW);
     }
   );
 
@@ -28,48 +19,20 @@ export = (app: Probot) => {
    * can be used to run processes for those actions.
    */
   app.on(['pull_request'], async (context: HookContext) => {
-    // 'as string' is necessary to prevent type checking
+    // 'as string' is necessary to prevent type checking.
     switch (context.payload.action as string) {
       case 'converted_to_draft':
-        PRService.replaceExistingPRLabels(
-          ContextService.getPRLabelReplacer(context),
-          context.payload.pull_request?.labels,
-          PRAction.CONVERTED_TO_DRAFT
-        );
+        await _botService.handlePRLabelReplacement(context, PRAction.CONVERTED_TO_DRAFT);
         break;
     }
   });
 
-  app.on(['issues', 'pull_request', 'label'], async (context: HookContext) => {
-    const octokitResponse = await context.octokit.issues.listLabelsForRepo(context.repo());
-
-    const labelCreator: (name: string, desc: string, color: string) => Promise<any> =
-      ContextService.getLabelCreator(context);
-    const labelUpdater: (oldName: string, newName: string, desc: string, color: string) => Promise<any> =
-      ContextService.getLabelUpdater(context);
-
-    labelService.generateMissingLabels(
-      labelService.updateLabels(octokitResponse.data as GHLabel[], labelUpdater),
-      labelCreator
-    );
-  });
-
   app.on('issues.opened', async (context: HookContext) => {
-    // Creates comment if this issue is the user's nth (a 'milestone' congratulation)
-    const userIssueCount: number = await IssueService.getNumberOfIssuesCreatedByUser(
-      context.payload.issue?.user as GHUser,
-      ContextService.getAuthorsIssuesRetriever(context)
-    );
-    if (IssueService.isUsersMilestoneIssue(userIssueCount)) {
-      ContextService.getIssueCommentCreator(context)(IssueService.getUserMilestoneIssueCongratulation(userIssueCount));
-    }
+    await _botService.handleUserCongratulatoryMessage(context, 'Issue');
   });
 
   app.on(['issues.opened', 'issues.edited'], async (context: HookContext) => {
-    IssueService.handleAutomatedLabelling(
-      context.payload.issue as GHIssue,
-      ContextService.getIssueLabelReplacer(context)
-    );
+    await _botService.handleAutomatedIssueLabelling(context);
   });
   // For more information on building apps:
   // https://probot.github.io/docs/

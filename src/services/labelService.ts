@@ -7,34 +7,36 @@ import { PRType } from '../model/model_label_type';
 
 export default class LabelService {
   /**
-   * Updates any existing labels that match the set of preset labels.
-   * @param octokitLabelsFetchResponse - Label data fetched from Github
-   * @param labelCreator - Callback function that allows for Label creation on Github.
-   * @param labelUpdater - Callback function that allows for label updating on Github.
-   * @returns List of updated Labels.
+   * Sieves outdated and missing labels and returns data in types
+   * useful for rectification.
+   * @param ghLabels - Github Labels to be filtered.
+   * @returns object containing missing labels -> Label[] & outdatedLabels -> Map<GHLabel, Label>.
    */
-  public updateLabels(
-    octokitLabelsFetchResponse: GHLabel[],
-    labelUpdater: (oldName: string, newName: string, desc: string, color: string) => Promise<any>
-  ): Label[] {
-    let remainingLabels: Label[] = LABEL_ARCHIVE.collatePresetLabels();
-
+  public static fetchMissingAndOutdatedLabels(ghLabels: GHLabel[]): {
+    missingLabels: Label[];
+    outdatedLabels: Map<GHLabel, Label>;
+  } {
+    const missingLabels: Label[] = LABEL_ARCHIVE.collatePresetLabels();
+    const outdatedLabels: Map<GHLabel, Label> = new Map<GHLabel, Label>();
     const presetSubstrIdentifiers: Map<string[], Label> = LABEL_ARCHIVE.collatePresetSubstringMap();
 
-    presetSubstrIdentifiers.forEach((label: Label, substrings: string[]) => {
+    presetSubstrIdentifiers.forEach(async (label: Label, substrings: string[]) => {
       for (const substr of substrings) {
         let isMatched = false;
 
-        for (const labelResponseIndex in octokitLabelsFetchResponse) {
-          if (octokitLabelsFetchResponse[labelResponseIndex].name.toLowerCase().includes(substr)) {
+        for (const ghLabelIndex in ghLabels) {
+          if (ghLabels[ghLabelIndex].name.toLowerCase().includes(substr)) {
             isMatched = true;
 
-            if (!label.equal(octokitLabelsFetchResponse[labelResponseIndex])) {
-              labelUpdater(octokitLabelsFetchResponse[labelResponseIndex].name, label.name, label.desc, label.color);
+            if (!label.equal(ghLabels[ghLabelIndex])) {
+              outdatedLabels.set(ghLabels[ghLabelIndex], label);
             }
 
-            octokitLabelsFetchResponse.splice(+labelResponseIndex, 1);
-            remainingLabels = remainingLabels.filter((labelFromAll: Label) => labelFromAll.name !== label.name);
+            ghLabels.splice(+ghLabelIndex, 1);
+            const outdatedLabelIndex: number = missingLabels.findIndex(
+              (missingLabel: Label) => missingLabel.name === label.name
+            );
+            missingLabels.splice(outdatedLabelIndex, 1);
             break;
           }
         }
@@ -44,24 +46,78 @@ export default class LabelService {
       }
     });
 
-    return remainingLabels;
+    return {
+      missingLabels: missingLabels,
+      outdatedLabels: outdatedLabels,
+    };
+  }
+
+  /**
+   * Updates any existing labels that match the set of preset labels.
+   * @param octokitLabelsFetchResponse - Label data fetched from Github
+   * @param labelUpdater - Callback function that allows for label updating on Github.
+   * @returns List of updated Labels.
+   */
+  public static async updateLabels(
+    outdatedLabels: Map<GHLabel, Label>,
+    labelUpdater: (oldName: string, newName: string, desc: string, color: string) => Promise<boolean>
+  ): Promise<boolean> {
+    const updateResults: boolean[] = [true];
+
+    outdatedLabels.forEach(async (updatedLabel: Label, outdatedLabel: GHLabel) => {
+      const labelUpdateResult: boolean = await labelUpdater(
+        outdatedLabel.name,
+        updatedLabel.name,
+        updatedLabel.desc,
+        updatedLabel.color
+      );
+
+      if (!labelUpdateResult) {
+        console.log(`Failed to update label: ${outdatedLabel.name}.`);
+      }
+
+      updateResults.push(labelUpdateResult);
+    });
+
+    return updateResults.reduce((previousValue: boolean, currentValue: boolean) => previousValue && currentValue);
+  }
+
+  public static async createLabels(
+    missingLabels: Label[],
+    labelCreator: (name: string, desc: string, color: string) => Promise<boolean>
+  ) {
+    const createResults: boolean[] = [true];
+
+    for (const label of missingLabels) {
+      const creationResult: boolean = await labelCreator(label.name, label.desc, label.color);
+
+      if (!creationResult) {
+        console.log(`Failed to create label: ${label.name}.`);
+      }
+
+      createResults.push(creationResult);
+    }
+
+    return createResults.reduce((previousValue: boolean, currentValue: boolean) => previousValue && currentValue);
   }
 
   /**
    * Creates remaining missing labels on Github.
    * @param remainingLabels - Labels that are missing from Github.
-   * @param labelCreator - Callback function that enables Label Creation.
+   * @param repoLabelCreator - Callback function that enables Label Creation.
    */
-  public generateMissingLabels(
-    remainingLabels: Label[],
-    labelCreator: (name: string, desc: string, color: string) => Promise<any>
-  ): void {
-    remainingLabels.forEach(
-      async (label: Label) =>
-        await labelCreator(label.name, label.desc, label.color).catch(() =>
-          console.log(`Error in creating ${label.name}?`)
-        )
-    );
+  public async validateLabelsOnGihtub(
+    repoLabelsRetriever: () => Promise<GHLabel[]>,
+    repoLabelUpdater: (oldName: string, newName: string, desc: string, color: string) => Promise<boolean>,
+    repoLabelCreator: (name: string, desc: string, color: string) => Promise<boolean>
+  ): Promise<boolean> {
+    const { missingLabels, outdatedLabels }: { missingLabels: Label[]; outdatedLabels: Map<GHLabel, Label> } =
+      LabelService.fetchMissingAndOutdatedLabels(await repoLabelsRetriever());
+
+    const updateResult: boolean = await LabelService.updateLabels(outdatedLabels, repoLabelUpdater);
+    const createResult: boolean = await LabelService.createLabels(missingLabels, repoLabelCreator);
+
+    return updateResult && createResult;
   }
 
   /**

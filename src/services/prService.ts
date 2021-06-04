@@ -13,11 +13,11 @@ export default class PRService {
    * @param existingLabels - Existing set of Labels on said PR.
    * @param prAction - Type of action taking place on said PR.
    */
-  public static replaceExistingPRLabels(
-    labelReplacer: (removalLabelName: string[], replacementLabelNames: string[]) => void,
+  public replaceExistingPRLabels(
+    labelReplacer: (removalLabelName: string[], replacementLabelNames: string[]) => Promise<boolean>,
     existingLabels: GHLabel[],
     prAction: PRAction
-  ) {
+  ): Promise<boolean> {
     const labelNamesToRemove: string[] = LabelService.extractLabelNames(
       LabelCollectionType.PRCollection,
       existingLabels
@@ -33,6 +33,6 @@ export default class PRService {
         break;
     }
 
-    labelReplacer(labelNamesToRemove, labelNamesToAdd);
+    return labelReplacer(labelNamesToRemove, labelNamesToAdd);
   }
 }

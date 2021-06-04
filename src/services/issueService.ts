@@ -7,14 +7,14 @@ import LabelService from './labelService';
 
 export default class IssueService {
   // Milestone Issue Counts - (When to congratulate the Issue Author)
-  private static milestones: number[] = [1, 25, 50, 75, 100];
+  private milestones: number[] = [1, 25, 50, 75, 100];
 
   /**
    * A function to get an appropriate postfix based on milestone count.
    * @param milestone - Number representing Issue Milestone Count.
    * @returns string that functions as a postfix to specified Milestone count.
    */
-  private static getMilestonePostfix(milestone: number): string {
+  private getMilestonePostfix(milestone: number): string {
     switch (milestone) {
       case 1:
         return 'st';
@@ -30,7 +30,7 @@ export default class IssueService {
    * @param userIssuesRetriever - A function that retrieves issues by said user.
    * @returns an array of GHIssues or undefined if issue fetch failed.
    */
-  public static async getNumberOfIssuesCreatedByUser(
+  public async getNumberOfIssuesCreatedByUser(
     ghUser: GHUser,
     userIssuesRetriever: (author: string) => Promise<GHIssue[] | undefined>
   ): Promise<number> {
@@ -47,7 +47,7 @@ export default class IssueService {
    * @param numberOfUsersIssues - Number of Issues made by users.
    * @returns true/false depending on whether the count of issues is a milestone count.
    */
-  public static isUsersMilestoneIssue(numberOfUsersIssues: number): boolean {
+  public isUsersMilestone(numberOfUsersIssues: number): boolean {
     for (const milestone of this.milestones) {
       if (numberOfUsersIssues === milestone) {
         return true;
@@ -62,8 +62,8 @@ export default class IssueService {
    * @param numberOfUsersIssues - Number of issues made by user.
    * @returns string containing the congratulation message.
    */
-  public static getUserMilestoneIssueCongratulation(numberOfUsersIssues: number): string {
-    return `Nice work opening your ${numberOfUsersIssues}${IssueService.getMilestonePostfix(
+  public getUserMilestoneIssueCongratulation(numberOfUsersIssues: number): string {
+    return `Nice work opening your ${numberOfUsersIssues}${this.getMilestonePostfix(
       numberOfUsersIssues
     )} issue! 😁🎊👍`;
   }
@@ -75,9 +75,9 @@ export default class IssueService {
    * @param labelReplacer - A function that replaces existing Issue Labels with newly specified ones.
    * @returns void
    */
-  public static handleAutomatedLabelling(
+  public async performAutomatedLabelling(
     ghIssue: GHIssue,
-    labelReplacer: (removalLabelName: string[], replacementLabelNames: string[]) => void
+    labelReplacer: (removalLabelName: string[], replacementLabelNames: string[]) => Promise<boolean>
   ) {
     const presetLabels: Label[] = LABEL_ARCHIVE.collatePresetLabels();
 
@@ -109,6 +109,6 @@ export default class IssueService {
       ...LabelService.extractLabelNames(LabelCollectionType.PriorityCollection, ghIssue.labels),
     ];
 
-    labelReplacer(labelNamesToRemove, labelNamesToAdd);
+    return await labelReplacer(labelNamesToRemove, labelNamesToAdd);
   }
 }

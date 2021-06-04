@@ -1,11 +1,11 @@
 {
-  "name": "sheriff",
+  "name": "repo-cop",
   "version": "1.0.0",
   "private": true,
   "description": "A Probot App that helps you police your repository",
   "author": "ptvrajsk <ptvrajsk@gmail.com>",
   "license": "ISC",
-  "homepage": "https://github.com/ptvrajsk/sheriff",
+  "homepage": "https://github.com/ptvrajsk/repo-cop",
   "keywords": [
     "probot",
     "github",
