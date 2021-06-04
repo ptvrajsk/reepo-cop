@@ -93,22 +93,36 @@ export default class IssueService {
     );
 
     if (!autoIssueLabel && !autoPriorityLabel) {
-      return;
+      return true;
     }
 
+    const existingLabels: string[] = [];
     const labelNamesToAdd: string[] = [];
     if (autoIssueLabel) {
       labelNamesToAdd.push(autoIssueLabel.name);
+      existingLabels.push(...LabelService.extractLabelNames(LabelCollectionType.IssueCollection, ghIssue.labels));
     }
     if (autoPriorityLabel) {
       labelNamesToAdd.push(autoPriorityLabel.name);
+      existingLabels.push(...LabelService.extractLabelNames(LabelCollectionType.PriorityCollection, ghIssue.labels))
     }
 
-    const labelNamesToRemove: string[] = [
-      ...LabelService.extractLabelNames(LabelCollectionType.IssueCollection, ghIssue.labels),
-      ...LabelService.extractLabelNames(LabelCollectionType.PriorityCollection, ghIssue.labels),
-    ];
+    const labelNamesToRemove: string[] = [];
 
+    for (const existingLabelName of existingLabels) {
+      const overlappingIndex: number = labelNamesToAdd.findIndex((labelNameToAdd: string) => labelNameToAdd === existingLabelName);
+      if (overlappingIndex !== -1) {
+        const spliceIndex: number = labelNamesToAdd.findIndex((nameToAdd: string) => nameToAdd === existingLabelName);
+        labelNamesToAdd.splice(spliceIndex, 1);
+      } else {
+        labelNamesToRemove.push(existingLabelName);
+      }
+    }
+
+    console.log(labelNamesToAdd)
+    console.log(labelNamesToRemove)
+
+    
     return await labelReplacer(labelNamesToRemove, labelNamesToAdd);
   }
 }

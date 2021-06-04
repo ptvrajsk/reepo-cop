@@ -39,11 +39,13 @@ export default class ContextService {
    */
   public getIssueCommentCreator(context: HookContext): (comment: string) => Promise<boolean> {
     return async (comment: string) =>
-      (await context.octokit.issues.createComment(
-        context.issue({
-          body: comment
-        })
-      )).status === CODE_REST_POST_SUCCESS;
+      (
+        await context.octokit.issues.createComment(
+          context.issue({
+            body: comment,
+          })
+        )
+      ).status === CODE_REST_POST_SUCCESS;
   }
 
   /**
@@ -54,8 +56,7 @@ export default class ContextService {
    */
   public getRepoLabelsRetriever(context: HookContext): () => Promise<GHLabel[]> {
     return async () =>
-      (await context.octokit.issues.listLabelsForRepo({ ...this.getRepoOwnerData(context) }))
-        .data as GHLabel[];
+      (await context.octokit.issues.listLabelsForRepo({ ...this.getRepoOwnerData(context) })).data as GHLabel[];
   }
 
   /**
@@ -67,12 +68,14 @@ export default class ContextService {
    */
   public getLabelCreator(context: HookContext): (name: string, desc: string, color: string) => Promise<boolean> {
     return async (name: string, desc: string, color: string) =>
-      (await context.octokit.rest.issues.createLabel({
-        ...this.getRepoOwnerData(context),
-        name: name,
-        description: desc,
-        color: color,
-      })).status === CODE_REST_POST_SUCCESS;
+      (
+        await context.octokit.rest.issues.createLabel({
+          ...this.getRepoOwnerData(context),
+          name: name,
+          description: desc,
+          color: color,
+        })
+      ).status === CODE_REST_POST_SUCCESS;
   }
 
   /**
@@ -102,13 +105,15 @@ export default class ContextService {
     context: HookContext
   ): (oldName: string, newName: string, desc: string, color: string) => Promise<boolean> {
     return async (oldName: string, newName: string, desc: string, color: string) =>
-      (await context.octokit.rest.issues.updateLabel({
-        ...this.getRepoOwnerData(context),
-        name: oldName,
-        new_name: newName,
-        description: desc,
-        color: color,
-      })).status === CODE_REST_REQUEST_SUCCESS;
+      (
+        await context.octokit.rest.issues.updateLabel({
+          ...this.getRepoOwnerData(context),
+          name: oldName,
+          new_name: newName,
+          description: desc,
+          color: color,
+        })
+      ).status === CODE_REST_REQUEST_SUCCESS;
   }
 
   /**
@@ -124,16 +129,18 @@ export default class ContextService {
     issueNumber?: number
   ): (removalLabelName: string[], replacementLabelNames: string[]) => Promise<boolean> {
     return async (removalLabelName: string[], replacementLabelNames: string[]) => {
-      
       const repoOwnerData: RepoOwnerData = this.getRepoOwnerData(context);
       const labelRemovalResults: boolean[] = [true];
 
       for (const removalName of removalLabelName) {
-        const removalResult: boolean = (await context.octokit.rest.issues.removeLabel({
-          ...repoOwnerData,
-          issue_number: issueNumber ? issueNumber : context.payload.issue?.number!,
-          name: removalName,
-        })).status === CODE_REST_REQUEST_SUCCESS;
+        const removalResult: boolean =
+          (
+            await context.octokit.rest.issues.removeLabel({
+              ...repoOwnerData,
+              issue_number: issueNumber ? issueNumber : context.payload.issue?.number!,
+              name: removalName,
+            })
+          ).status === CODE_REST_REQUEST_SUCCESS;
 
         if (!removalResult) {
           console.log(`Error in removing Label: ${removalName} from Issue: ${issueNumber}`);
@@ -142,17 +149,25 @@ export default class ContextService {
         labelRemovalResults.push(removalResult);
       }
 
-      const labelAdditionResult: boolean = (await context.octokit.rest.issues.addLabels({
-        ...repoOwnerData,
-        issue_number: issueNumber ? issueNumber : context.payload.issue?.number!,
-        labels: replacementLabelNames,
-      })).status === CODE_REST_REQUEST_SUCCESS;
+      const labelAdditionResult: boolean =
+        replacementLabelNames && replacementLabelNames.length
+          ? (
+              await context.octokit.rest.issues.addLabels({
+                ...repoOwnerData,
+                issue_number: issueNumber ? issueNumber : context.payload.issue?.number!,
+                labels: replacementLabelNames,
+              })
+            ).status === CODE_REST_REQUEST_SUCCESS
+          : true;
 
       if (!labelAdditionResult) {
         console.log(`Error in adding labels to Issue: ${issueNumber}`);
       }
 
-      return labelRemovalResults.reduce((previousValue: boolean, currentValue: boolean) => previousValue && currentValue) && labelAdditionResult;
+      return (
+        labelRemovalResults.reduce((previousValue: boolean, currentValue: boolean) => previousValue && currentValue) &&
+        labelAdditionResult
+      );
     };
   }
 
