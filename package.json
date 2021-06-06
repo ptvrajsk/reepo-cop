@@ -15,7 +15,8 @@
     "build:dev": "tsc -p ./tsconfig-dev.json",
     "dev": "npm run build:dev && probot run ./lib/index.js",
     "build": "tsc -p ./tsconfig.json",
-    "start": "npm run build && probot run ./lib/index.js",
+    "postinstall": "tsc -p ./tsconfig.json",
+    "start": "probot run ./lib/index.js",
     "test": "jest"
   },
   "dependencies": {
